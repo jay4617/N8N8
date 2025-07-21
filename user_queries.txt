@@ -43,3 +43,66 @@ My training involved:
 [2025-07-21 17:42:40] QUESTION | User: Purva (ID: 6696767522) | Message: Can you give me top 5 restaurants in Dallas area
 [2025-07-21 17:42:49] RESPONSE | To: Purva (ID: 6696767522) | Response: As a quantitative-finance specialist I do not maintain a restaurant database, and the provided finan...
 ================================================================================
+[2025-07-21 17:45:26] COMMAND | User: Manan (ID: 7949186344) | Message: /start
+[2025-07-21 17:45:27] RESPONSE | To: Manan (ID: 7949186344) | Response: 🤖 Welcome Manan!
+
+I'm your AI-powered Quantitative Finance assistant. I can help you with:
+
+📈 Portfo...
+================================================================================
+[2025-07-21 17:46:34] QUESTION | User: Manan (ID: 7949186344) | Message: USA president
+[2025-07-21 17:46:38] RESPONSE | To: Manan (ID: 7949186344) | Response: The passage does not mention any President of the United States.
+================================================================================
+[2025-07-21 17:48:35] COMMAND | User: JAY FINDOLIYA (ID: 6749966034) | Message: /start
+[2025-07-21 17:48:36] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Full Response:
+🤖 Welcome JAY FINDOLIYA!
+
+I'm your AI-powered Quantitative Finance assistant. I can help you with:
+
+📈 Portfolio Theory & Optimization
+📊 Risk Management & Analysis  
+💱 Derivatives & Financial Instruments
+📉 Market Analysis & Trading Strategies
+🔢 Mathematical Finance & Models
+
+Ask me any quantitative finance question to get started!
+================================================================================
+[2025-07-21 17:48:36] COMMAND | User: JAY FINDOLIYA (ID: 6749966034) | Message: /start
+[2025-07-21 17:48:36] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Full Response:
+🤖 Welcome JAY FINDOLIYA!
+
+I'm your AI-powered Quantitative Finance assistant. I can help you with:
+
+📈 Portfolio Theory & Optimization
+📊 Risk Management & Analysis  
+💱 Derivatives & Financial Instruments
+📉 Market Analysis & Trading Strategies
+🔢 Mathematical Finance & Models
+
+Ask me any quantitative finance question to get started!
+================================================================================
+[2025-07-21 17:48:40] QUESTION | User: JAY FINDOLIYA (ID: 6749966034) | Message: Hello there
+[2025-07-21 17:48:41] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Full Response:
+Good day. How may I assist you with quantitative-finance questions today?
+================================================================================
+[2025-07-21 17:48:45] QUESTION | User: Purva (ID: 6696767522) | Message: Explain pairs trading to a beginner
+[2025-07-21 17:48:50] RESPONSE | To: Purva (ID: 6696767522) | Full Response:
+Pairs trading is a simple, market-neutral strategy that tries to profit when two similar stocks temporarily move apart in price.
+
+1. The idea  
+   • Find two stocks (A and B) that normally move together—think Coca-Cola and Pepsi, or two oil companies.  
+   • When their prices diverge, you bet that the gap will close again.  
+   • You go long the cheaper stock and short the more expensive one, dollar-for-dollar, so the overall position is “market neutral”: if the whole market goes up or down, the two sides roughly cancel out.
+
+2. Step-by-step example  
+   • Historical data show Coke and Pepsi usually trade in a 1-to-1 ratio, but today Coke is $54 and Pepsi is $50.  
+   • You buy $10,000 of Pepsi (long) and short $10,000 of Coke. Net cash outlay ≈ $0.  
+   • If the gap shrinks back to normal (say both hit $52), you close the trades: sell Pepsi at $52 (+$400) and buy back Coke at $52 (-$200), earning $200 profit minus costs.  
+   • Risk: the gap could widen further; you must monitor the trade and set stop-losses.
+
+3. Key points for beginners  
+   • Pairs trading is statistical, not fundamental—you care about price relationships, not company value.  
+   • It removes broad-market risk because you are long and short equally.  
+   • Works best in liquid, highly correlated pairs.  
+   • Costs (bid-ask spreads, short borrowing fees) can erode small margins, so trade size and timing matter.
+================================================================================

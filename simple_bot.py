@@ -142,19 +142,20 @@ def log_user_query(user_name: str, user_id: int, message: str, message_type: str
         logger.error(f"Error logging user query: {e}")
 
 def log_bot_response(user_name: str, user_id: int, response: str):
-    """Log bot responses to the same file with immediate flush."""
+    """Log COMPLETE bot responses to the same file with immediate flush."""
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        response_preview = response[:100] + "..." if len(response) > 100 else response
-        log_entry = f"[{timestamp}] RESPONSE | To: {user_name} (ID: {user_id}) | Response: {response_preview}\n"
+        # Log the FULL response without truncation
+        log_entry = f"[{timestamp}] RESPONSE | To: {user_name} (ID: {user_id}) | Full Response:\n{response}\n"
         log_entry += "="*80 + "\n"  # Separator line
         
         with open("user_queries.txt", "a", encoding="utf-8") as f:
             f.write(log_entry)
             f.flush()  # Force immediate write to disk
         
-        # Also print to console for real-time monitoring
-        print(f"🤖 LOGGED: Response sent to {user_name}")
+        # Also print to console for real-time monitoring (with preview)
+        response_preview = response[:100] + "..." if len(response) > 100 else response
+        print(f"🤖 LOGGED: Response sent to {user_name} - {response_preview}")
         
     except Exception as e:
         logger.error(f"Error logging bot response: {e}")
