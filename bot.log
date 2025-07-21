@@ -1,0 +1,31 @@
+2025-07-20 20:09:19,216 - __main__ - INFO - ✅ Config validated
+2025-07-20 20:09:19,216 - __main__ - INFO - 🔄 Loading AI services...
+2025-07-20 20:09:22,084 - chromadb.telemetry.product.posthog - ERROR - Failed to send telemetry event ClientStartEvent: capture() takes 1 positional argument but 3 were given
+2025-07-20 20:09:23,908 - vector_db - INFO - Loaded existing document collection
+2025-07-20 20:09:23,909 - __main__ - INFO - ✅ AI services loaded successfully!
+2025-07-20 20:09:23,937 - __main__ - INFO - 🚀 Starting Quantitative Finance AI Bot...
+2025-07-20 20:09:23,937 - __main__ - INFO - 📱 Bot @Hercules4617bot is ready!
+2025-07-20 20:09:24,473 - telegram.ext.Application - INFO - Application started
+2025-07-20 20:09:49,909 - __main__ - INFO - 📝 JAY FINDOLIYA asked: Quantitative
+2025-07-20 20:09:50,620 - chromadb.telemetry.product.posthog - ERROR - Failed to send telemetry event CollectionQueryEvent: capture() takes 1 positional argument but 3 were given
+2025-07-20 20:09:50,620 - vector_db - INFO - Query similarity -0.118 below threshold 0.1
+2025-07-20 20:09:50,621 - chromadb.telemetry.product.posthog - ERROR - Failed to send telemetry event CollectionGetEvent: capture() takes 1 positional argument but 3 were given
+2025-07-20 20:09:50,877 - __main__ - INFO - ✅ Answered JAY FINDOLIYA - Context: False
+2025-07-20 20:10:03,011 - __main__ - INFO - 📝 JAY FINDOLIYA asked: Quantitative
+2025-07-20 20:10:03,844 - vector_db - INFO - Query similarity -0.118 below threshold 0.1
+2025-07-20 20:10:04,187 - __main__ - INFO - ✅ Answered JAY FINDOLIYA - Context: False
+2025-07-20 20:10:11,071 - __main__ - INFO - 📝 JAY FINDOLIYA asked: Derivative
+2025-07-20 20:10:11,636 - vector_db - INFO - Query similarity 0.026 below threshold 0.1
+2025-07-20 20:10:11,892 - __main__ - INFO - ✅ Answered JAY FINDOLIYA - Context: False
+2025-07-20 20:10:54,931 - __main__ - INFO - 📝 JAY FINDOLIYA asked: Poisson distribution
+2025-07-20 20:10:56,097 - vector_db - INFO - Retrieved context of 2163 characters with max similarity 0.249
+2025-07-20 20:10:56,984 - llm_service - INFO - Generated response of 33 characters
+2025-07-20 20:10:57,288 - __main__ - INFO - ✅ Answered JAY FINDOLIYA - Context: True
+2025-07-20 20:13:33,164 - __main__ - INFO - ✅ Config validated
+2025-07-20 20:13:33,164 - __main__ - INFO - 🔄 Loading AI services...
+2025-07-20 20:13:36,121 - chromadb.telemetry.product.posthog - ERROR - Failed to send telemetry event ClientStartEvent: capture() takes 1 positional argument but 3 were given
+2025-07-20 20:13:38,120 - vector_db - INFO - Loaded existing document collection
+2025-07-20 20:13:38,121 - __main__ - INFO - ✅ AI services loaded successfully!
+2025-07-20 20:13:38,148 - __main__ - INFO - 🚀 Starting Quantitative Finance AI Bot...
+2025-07-20 20:13:38,148 - __main__ - INFO - 📱 Bot @Hercules4617bot is ready!
+2025-07-20 20:13:38,673 - telegram.ext.Application - INFO - Application started
