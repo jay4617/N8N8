@@ -1,0 +1,45 @@
+[2025-07-21 17:24:44] COMMAND | User: Purva (ID: 6696767522) | Message: /start
+[2025-07-21 17:24:45] RESPONSE | To: Purva (ID: 6696767522) | Response: 🤖 Welcome Purva!
+
+I'm your AI-powered Quantitative Finance assistant. I can help you with:
+
+📈 Portfolio Theory & Optimization
+📊 Risk Management & Analysis  
+💱 Derivatives & Financial Instruments
+📉 Mar...
+================================================================================
+[2025-07-21 17:33:52] QUESTION | User: JAY FINDOLIYA (ID: 6749966034) | Message: Hello there
+[2025-07-21 17:33:55] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Response: Hello, and welcome. How may I assist you today?
+================================================================================
+[2025-07-21 17:34:53] QUESTION | User: JAY FINDOLIYA (ID: 6749966034) | Message: What you can do ?
+[2025-07-21 17:34:59] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Response: To advance my career in quantitative finance, I will:
+
+1. **Follow Financial Markets daily** – monit...
+================================================================================
+[2025-07-21 17:35:23] QUESTION | User: JAY FINDOLIYA (ID: 6749966034) | Message: What’s the price of Apple stock right now ?
+[2025-07-21 17:35:26] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Response: As of right now, I don’t have access to live market data, so I cannot provide the current price of A...
+================================================================================
+[2025-07-21 17:37:10] QUESTION | User: JAY FINDOLIYA (ID: 6749966034) | Message: But I want to know if it’s right time for me to buy it or not ?
+[2025-07-21 17:37:15] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Response: No one can tell you the “right” moment to press the BUY button, because the market’s next price is u...
+================================================================================
+[2025-07-21 17:37:24] QUESTION | User: Purva (ID: 6696767522) | Message: define momentum trading one sentence
+[2025-07-21 17:37:28] RESPONSE | To: Purva (ID: 6696767522) | Response: Momentum trading is a short-term, trend-following strategy that buys stocks exhibiting strong recent...
+================================================================================
+[2025-07-21 17:38:49] QUESTION | User: JAY FINDOLIYA (ID: 6749966034) | Message: But I want to know if it’s right time for me to buy it or not ? Give me in one sentence only just one
+[2025-07-21 17:38:51] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Response: The right time to buy is when the stock is demonstrably below its conservatively estimated intrinsic...
+================================================================================
+[2025-07-21 17:40:19] QUESTION | User: JAY FINDOLIYA (ID: 6749966034) | Message: Can you give me top 5 restaurants in Dallas area
+[2025-07-21 17:40:22] RESPONSE | To: JAY FINDOLIYA (ID: 6749966034) | Response: I am a specialist in quantitative finance and my responses must remain focused on financial data, ma...
+================================================================================
+[2025-07-21 17:40:32] QUESTION | User: Purva (ID: 6696767522) | Message: how your day going
+[2025-07-21 17:40:34] RESPONSE | To: Purva (ID: 6696767522) | Response: It’s been a productive day, thank you. I’ve been sifting through the latest factor-model updates, ru...
+================================================================================
+[2025-07-21 17:41:18] QUESTION | User: Purva (ID: 6696767522) | Message: how are trained? what are you built on?
+[2025-07-21 17:41:23] RESPONSE | To: Purva (ID: 6696767522) | Response: I am Kimi, a large language-model developed and trained by Moonshot AI.  
+My training involved:
+
+1. ...
+================================================================================
+[2025-07-21 17:42:40] QUESTION | User: Purva (ID: 6696767522) | Message: Can you give me top 5 restaurants in Dallas area
+[2025-07-21 17:42:49] RESPONSE | To: Purva (ID: 6696767522) | Response: As a quantitative-finance specialist I do not maintain a restaurant database, and the provided finan...
+================================================================================

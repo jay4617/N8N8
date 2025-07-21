@@ -8,6 +8,7 @@ import sys
 import asyncio
 import aiohttp
 import json
+from datetime import datetime
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from config import Config
 from sentence_transformers import SentenceTransformer
@@ -123,11 +124,50 @@ Answer clearly and professionally:"""
 vector_db = SimpleVectorDB()
 llm = SimpleLLM()
 
+# User query logging
+def log_user_query(user_name: str, user_id: int, message: str, message_type: str = "question"):
+    """Log user queries to a text file with immediate flush."""
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"[{timestamp}] {message_type.upper()} | User: {user_name} (ID: {user_id}) | Message: {message}\n"
+        
+        with open("user_queries.txt", "a", encoding="utf-8") as f:
+            f.write(log_entry)
+            f.flush()  # Force immediate write to disk
+        
+        # Also print to console for real-time monitoring
+        print(f"📝 LOGGED: {log_entry.strip()}")
+        
+    except Exception as e:
+        logger.error(f"Error logging user query: {e}")
+
+def log_bot_response(user_name: str, user_id: int, response: str):
+    """Log bot responses to the same file with immediate flush."""
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        response_preview = response[:100] + "..." if len(response) > 100 else response
+        log_entry = f"[{timestamp}] RESPONSE | To: {user_name} (ID: {user_id}) | Response: {response_preview}\n"
+        log_entry += "="*80 + "\n"  # Separator line
+        
+        with open("user_queries.txt", "a", encoding="utf-8") as f:
+            f.write(log_entry)
+            f.flush()  # Force immediate write to disk
+        
+        # Also print to console for real-time monitoring
+        print(f"🤖 LOGGED: Response sent to {user_name}")
+        
+    except Exception as e:
+        logger.error(f"Error logging bot response: {e}")
+
 async def start_handler(update, context):
     """Handle /start command."""
     try:
         user = update.effective_user.first_name or "User"
+        user_id = update.effective_user.id
         logger.info(f"📝 /start from {user}")
+        
+        # Log the /start command
+        log_user_query(user, user_id, "/start", "command")
         
         response = f"""🤖 Welcome {user}!
 
@@ -144,6 +184,9 @@ Ask me any quantitative finance question to get started!"""
         await update.message.reply_text(response)
         logger.info(f"✅ Sent /start response to {user}")
         
+        # Log the bot response
+        log_bot_response(user, user_id, response)
+        
     except Exception as e:
         logger.error(f"❌ Start error: {e}")
         await update.message.reply_text("Welcome! Ask me any quantitative finance question.")
@@ -152,9 +195,13 @@ async def question_handler(update, context):
     """Handle questions."""
     try:
         user = update.effective_user.first_name or "User"
+        user_id = update.effective_user.id
         question = update.message.text
         
         logger.info(f"📝 Question from {user}: {question}")
+        
+        # Log the user question
+        log_user_query(user, user_id, question, "question")
         
         # Show typing
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
@@ -174,9 +221,15 @@ async def question_handler(update, context):
         await update.message.reply_text(answer)
         logger.info(f"✅ Answered {user}")
         
+        # Log the bot response
+        log_bot_response(user, user_id, answer)
+        
     except Exception as e:
         logger.error(f"❌ Question error: {e}")
-        await update.message.reply_text("Sorry, I encountered an error. Please try again.")
+        error_msg = "Sorry, I encountered an error. Please try again."
+        await update.message.reply_text(error_msg)
+        # Log the error response too
+        log_bot_response(update.effective_user.first_name or "User", update.effective_user.id, error_msg)
 
 def main():
     """Main function."""
