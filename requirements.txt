@@ -10,3 +10,4 @@ aiohttp==3.9.1
 pydantic==2.5.2
 openai==1.6.1
 tiktoken==0.5.2
+yfinance==0.2.65

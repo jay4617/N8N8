@@ -20,6 +20,8 @@ from langchain.schema import HumanMessage, AIMessage
 from langchain_community.chat_message_histories import FileChatMessageHistory
 import pickle
 import os
+import re
+from yahoo_finance import yahoo_finance, format_stock_data_for_bot, format_market_summary_for_bot
 
 # Setup logging
 logging.basicConfig(
@@ -204,6 +206,105 @@ def get_conversation_context(user_id: int) -> str:
     
     return "\n".join(context_parts)
 
+# Stock query detection and handling
+def detect_stock_query(message: str) -> dict:
+    """Detect if message is asking for stock information and extract symbols."""
+    message_lower = message.lower()
+    
+    # Market summary queries
+    market_queries = [
+        'market summary', 'market overview', 'indices', 'dow jones', 'nasdaq', 's&p 500', 'sp500', 'market indices'
+    ]
+    
+    # Check for market summary request
+    for query in market_queries:
+        if query in message_lower:
+            return {'type': 'market_summary'}
+    
+    # Check for common company names first (more specific)
+    company_patterns = {
+        r'\bapple\b': 'AAPL',
+        r'\bmicrosoft\b': 'MSFT',
+        r'\bgoogle\b': 'GOOGL',
+        r'\bamazon\b': 'AMZN',
+        r'\btesla\b': 'TSLA',
+        r'\bmeta\b|facebook': 'META',
+        r'\bnvidia\b': 'NVDA',
+        r'\bberkshire\b': 'BRK-B',
+    }
+    
+    symbols = []
+    for pattern, symbol in company_patterns.items():
+        if re.search(pattern, message_lower):
+            symbols.append(symbol)
+    
+    # Look for explicit stock symbols (2-5 uppercase letters)
+    # More restrictive patterns
+    if 'price' in message_lower or 'quote' in message_lower or 'stock' in message_lower:
+        # Extract stock symbols only when price/quote/stock keywords are present
+        stock_patterns = [
+            r'\b([A-Z]{2,5})\b(?:\s+(?:stock|price|quote|share)|\s*(?:stock|price|quote|share))',
+            r'(?:price|quote|stock|share)\s+(?:of\s+)?([A-Z]{2,5})\b',
+            r'\$([A-Z]{2,5})\b',
+        ]
+        
+        for pattern in stock_patterns:
+            matches = re.findall(pattern, message, re.IGNORECASE)
+            for match in matches:
+                if len(match) >= 2 and len(match) <= 5 and match.isalpha():
+                    symbols.append(match.upper())
+    
+    # Remove duplicates and common false positives
+    symbols = list(set(symbols))
+    false_positives = ['WHAT', 'THE', 'PRICE', 'OF', 'SHOW', 'ME', 'GET', 'IS', 'ARE', 'CAN', 'YOU', 'GIVE']
+    symbols = [s for s in symbols if s not in false_positives]
+    
+    if symbols:
+        return {'type': 'stock_quote', 'symbols': symbols}
+    
+    return {'type': 'none'}
+
+def get_stock_data_response(query_result: dict) -> str:
+    """Get formatted stock data based on query type."""
+    try:
+        if query_result['type'] == 'market_summary':
+            data = yahoo_finance.get_market_summary()
+            return format_market_summary_for_bot(data)
+        
+        elif query_result['type'] == 'stock_quote':
+            symbols = query_result['symbols']
+            
+            if len(symbols) == 1:
+                # Single stock - get detailed info
+                data = yahoo_finance.get_stock_info(symbols[0])
+                return format_stock_data_for_bot(data)
+            
+            elif len(symbols) <= 5:
+                # Multiple stocks - get price summary
+                data = yahoo_finance.get_multiple_quotes(symbols)
+                response = "📊 **Stock Prices**\n\n"
+                
+                for symbol, info in data.items():
+                    if symbol == 'timestamp':
+                        continue
+                    if 'error' in info:
+                        response += f"❌ {symbol}: Data unavailable\n"
+                    else:
+                        change_emoji = "📈" if info.get('change_percent', 0) >= 0 else "📉"
+                        response += f"{change_emoji} **{symbol}**: ${info.get('price', 0):.2f} ({info.get('change_percent', 0):+.2f}%)\n"
+                
+                response += f"\n📅 As of: {data.get('timestamp', 'N/A')}"
+                return response
+            
+            else:
+                return "❌ Too many symbols requested. Please ask for 5 or fewer stocks at once."
+    
+    except Exception as e:
+        logger.error(f"Error getting stock data: {e}")
+        return "❌ Sorry, I couldn't fetch the market data right now. Please try again."
+    
+    return "❌ Could not process your stock query."
+
 # User query logging
 def log_user_query(user_name: str, user_id: int, message: str, message_type: str = "question"):
     """Log user queries to a text file with immediate flush."""
@@ -252,15 +353,22 @@ async def start_handler(update, context):
         
         response = f"""🤖 Welcome {user}!
 
-I'm your Finance assistant. I can help you with:
+I'm your AI Finance assistant. I can help you with:
 
 📈 Portfolio Theory & Optimization
 📊 Risk Management & Analysis  
 💱 Derivatives & Financial Instruments
 📉 Market Analysis & Trading Strategies
 🔢 Mathematical Finance & Models
+💰 Real-time Stock Prices & Market Data
 
-Ask me any quantitative finance question to get started!"""
+**Examples:**
+• "What is Apple stock price?" 
+• "Show me market summary"
+• "Explain portfolio diversification"
+• "TSLA quote"
+
+Ask me any finance question to get started!"""
         
         await update.message.reply_text(response)
         logger.info(f"✅ Sent /start response to {user}")
@@ -287,25 +395,39 @@ async def question_handler(update, context):
         # Show typing
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
         
-        # Get conversation history for this user
-        conversation_context = get_conversation_context(user_id)
+        # Check if this is a stock query first
+        stock_query = detect_stock_query(question)
         
-        # Search for context
-        context_docs = vector_db.search(question, n_results=3)
-        context_text = ""
-        if context_docs:
-            context_text = "\n\n".join(context_docs[:2])  # Use top 2 results
-            if len(context_text) > 3000:  # Limit context length
-                context_text = context_text[:3000] + "..."
+        if stock_query['type'] != 'none':
+            # Handle stock data request
+            logger.info(f"📊 Stock query detected: {stock_query}")
+            answer = get_stock_data_response(stock_query)
+            
+            # Send stock data response
+            await update.message.reply_text(answer, parse_mode='Markdown')
+            logger.info(f"✅ Sent stock data to {user}")
+            
+        else:
+            # Handle regular finance questions with RAG
+            # Get conversation history for this user
+            conversation_context = get_conversation_context(user_id)
+            
+            # Search for context
+            context_docs = vector_db.search(question, n_results=3)
+            context_text = ""
+            if context_docs:
+                context_text = "\n\n".join(context_docs[:2])  # Use top 2 results
+                if len(context_text) > 3000:  # Limit context length
+                    context_text = context_text[:3000] + "..."
+            
+            # Generate response with conversation memory
+            answer = await llm.generate(question, context_text, conversation_context)
+            
+            # Send response
+            await update.message.reply_text(answer)
+            logger.info(f"✅ Answered {user}")
         
-        # Generate response with conversation memory
-        answer = await llm.generate(question, context_text, conversation_context)
-        
-        # Send response
-        await update.message.reply_text(answer)
-        logger.info(f"✅ Answered {user}")
-        
-        # Add to conversation memory
+        # Add to conversation memory (both stock and regular responses)
         add_to_conversation_memory(user_id, question, answer)
         
         # Log the bot response
