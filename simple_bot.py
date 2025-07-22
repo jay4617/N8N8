@@ -15,6 +15,11 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 from chromadb.config import Settings
 from pathlib import Path
+from langchain.memory import ConversationBufferMemory
+from langchain.schema import HumanMessage, AIMessage
+from langchain_community.chat_message_histories import FileChatMessageHistory
+import pickle
+import os
 
 # Setup logging
 logging.basicConfig(
@@ -73,19 +78,29 @@ class SimpleLLM:
             "Content-Type": "application/json"
         }
     
-    async def generate(self, question: str, context: str = ""):
+    async def generate(self, question: str, context: str = "", conversation_history: str = ""):
         try:
+            # Build comprehensive context including conversation history
+            full_context = ""
+            if conversation_history:
+                full_context += f"Previous conversation:\n{conversation_history}\n\n"
             if context:
-                prompt = f"""You are a finance expert. Use this knowledge to answer ONLY finance questions: {context}
+                full_context += f"Knowledge base: {context}"
+            
+            if full_context:
+                prompt = f"""You are a finance expert. Use this information to answer finance questions and provide follow-up responses based on conversation history.
 
-Question: {question}
+{full_context}
+
+Current question: {question}
 
 STRICT RULES:
-- If the question is about finance/investing/trading/economics: Answer using the knowledge provided
+- If the question is about finance/investing/trading/economics: Answer using the knowledge and conversation history
+- Consider previous questions for context (e.g., if user asked about stocks earlier, "this stock" refers to that context)
 - If the question is NOT about finance (restaurants, travel, personal questions, AI/tech questions): Reply EXACTLY with: "I'm sorry, but I specialize in quantitative finance and can only help with finance-related questions. I can assist you with portfolio optimization, risk management, derivatives pricing, trading strategies, and financial modeling. Please ask me a finance-related question!"
 - NEVER mention: books, chapters, authors, documents, context, data sources, AI models, Moonshot, Kimi, or any technical details
 - NEVER provide restaurant recommendations, travel advice, or general information
-- Sound like a human finance expert, not an AI system
+- Sound like a human finance expert with memory of the conversation
 
 Answer:"""
             else:
@@ -138,6 +153,56 @@ Answer:"""
 # Initialize services
 vector_db = SimpleVectorDB()
 llm = SimpleLLM()
+
+# LangChain ConversationBufferMemory for each user
+user_memories = {}
+
+def get_user_memory(user_id: int) -> ConversationBufferMemory:
+    """Get or create ConversationBufferMemory for a user with optional persistence."""
+    if user_id not in user_memories:
+        # Create memory directory if it doesn't exist
+        memory_dir = Path("./user_memories")
+        memory_dir.mkdir(exist_ok=True)
+        
+        # Create memory with file-based chat history for persistence
+        memory_file = memory_dir / f"user_{user_id}_memory.json"
+        chat_history = FileChatMessageHistory(file_path=str(memory_file))
+        
+        user_memories[user_id] = ConversationBufferMemory(
+            chat_memory=chat_history,
+            return_messages=True,
+            memory_key="chat_history"
+        )
+    return user_memories[user_id]
+
+def add_to_conversation_memory(user_id: int, user_message: str, bot_response: str):
+    """Add message pair to user's LangChain memory."""
+    memory = get_user_memory(user_id)
+    memory.chat_memory.add_user_message(user_message)
+    memory.chat_memory.add_ai_message(bot_response)
+
+def get_conversation_context(user_id: int) -> str:
+    """Get recent conversation history from LangChain memory."""
+    memory = get_user_memory(user_id)
+    messages = memory.chat_memory.messages
+    
+    if not messages:
+        return ""
+    
+    # Format recent messages for context (last 6 messages = 3 exchanges)
+    context_parts = []
+    recent_messages = messages[-6:] if len(messages) > 6 else messages
+    
+    for i in range(0, len(recent_messages), 2):
+        if i + 1 < len(recent_messages):
+            human_msg = recent_messages[i]
+            ai_msg = recent_messages[i + 1]
+            context_parts.append(f"User previously asked: {human_msg.content}")
+            # Truncate AI response for context length
+            ai_content = ai_msg.content[:200] + "..." if len(ai_msg.content) > 200 else ai_msg.content
+            context_parts.append(f"You responded: {ai_content}")
+    
+    return "\n".join(context_parts)
 
 # User query logging
 def log_user_query(user_name: str, user_id: int, message: str, message_type: str = "question"):
@@ -222,6 +287,9 @@ async def question_handler(update, context):
         # Show typing
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
         
+        # Get conversation history for this user
+        conversation_context = get_conversation_context(user_id)
+        
         # Search for context
         context_docs = vector_db.search(question, n_results=3)
         context_text = ""
@@ -230,12 +298,15 @@ async def question_handler(update, context):
             if len(context_text) > 3000:  # Limit context length
                 context_text = context_text[:3000] + "..."
         
-        # Generate response
-        answer = await llm.generate(question, context_text)
+        # Generate response with conversation memory
+        answer = await llm.generate(question, context_text, conversation_context)
         
         # Send response
         await update.message.reply_text(answer)
         logger.info(f"✅ Answered {user}")
+        
+        # Add to conversation memory
+        add_to_conversation_memory(user_id, question, answer)
         
         # Log the bot response
         log_bot_response(user, user_id, answer)
