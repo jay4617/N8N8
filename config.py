@@ -28,6 +28,15 @@ class Config:
     DATA_FILE: str = os.getenv("DATA_FILE", "data.txt")
     CHROMA_DB_PATH: str = os.getenv("CHROMA_DB_PATH", "./chroma_db")
     
+<<<<<<< HEAD
+=======
+    # AI Model Configuration
+    MAX_TOKENS: int = int(os.getenv("MAX_TOKENS", "4096"))
+    MODEL_NAME: str = os.getenv("MODEL_NAME", "meta/Llama-4-Scout-17B-16E-Instruct")
+    TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.8"))
+    TOP_P: float = float(os.getenv("TOP_P", "0.1"))
+    
+>>>>>>> 1e6e3ce (Update)
     # Logging Configuration
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     LOG_FILE: str = os.getenv("LOG_FILE", "bot.log")

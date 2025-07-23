@@ -16,11 +16,16 @@ class DeepSeekService:
             "Content-Type": "application/json"
         }
     
+<<<<<<< HEAD
     async def generate_response(self, query: str, context: str = "", max_tokens: int = 1000) -> Optional[str]:
+=======
+    async def generate_response(self, query: str, context: str = "", max_tokens: int = None) -> Optional[str]:
+>>>>>>> 1e6e3ce (Update)
         """Generate response using DeepSeek API."""
         try:
             prompt = self._build_prompt(query, context)
             
+<<<<<<< HEAD
             payload = {
                 "model": "moonshotai/kimi-k2",
                 "messages": [
@@ -28,6 +33,21 @@ class DeepSeekService:
                 ],
                 "max_tokens": max_tokens,
                 "temperature": 0.7,
+=======
+            # Use config values with fallback
+            if max_tokens is None:
+                max_tokens = self.config.MAX_TOKENS
+            
+            payload = {
+                "model": self.config.MODEL_NAME,
+                "messages": [
+                    {"role": "system", "content": "You are an expert in quantitative finance and trading."},
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": min(max_tokens, self.config.MAX_TOKENS),
+                "temperature": self.config.TEMPERATURE,
+                "top_p": self.config.TOP_P,
+>>>>>>> 1e6e3ce (Update)
                 "stream": False
             }
             

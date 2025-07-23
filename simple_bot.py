@@ -21,7 +21,12 @@ from langchain_community.chat_message_histories import FileChatMessageHistory
 import pickle
 import os
 import re
+<<<<<<< HEAD
 from yahoo_finance import yahoo_finance, format_stock_data_for_bot, format_market_summary_for_bot
+=======
+import time
+from fmp_service import get_ma_feed_response, get_company_search_response, get_stock_quote_response, get_company_profile_response
+>>>>>>> 1e6e3ce (Update)
 
 # Setup logging
 logging.basicConfig(
@@ -79,6 +84,10 @@ class SimpleLLM:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
+<<<<<<< HEAD
+=======
+        # Rate limiting removed for better user experience
+>>>>>>> 1e6e3ce (Update)
     
     async def generate(self, question: str, context: str = "", conversation_history: str = ""):
         try:
@@ -119,10 +128,21 @@ STRICT RULES:
 Answer:"""
             
             payload = {
+<<<<<<< HEAD
                 "model": "moonshotai/kimi-k2",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 1000,
                 "temperature": 0.7
+=======
+                "model": Config.MODEL_NAME,
+                "messages": [
+                    {"role": "system", "content": "You are an expert in quantitative finance and trading."},
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": Config.MAX_TOKENS,
+                "temperature": Config.TEMPERATURE,
+                "top_p": Config.TOP_P
+>>>>>>> 1e6e3ce (Update)
             }
             
             # Create SSL context that doesn't verify certificates
@@ -206,6 +226,7 @@ def get_conversation_context(user_id: int) -> str:
     
     return "\n".join(context_parts)
 
+<<<<<<< HEAD
 # Stock query detection and handling
 def detect_stock_query(message: str) -> dict:
     """Detect if message is asking for stock information and extract symbols."""
@@ -304,6 +325,114 @@ def get_stock_data_response(query_result: dict) -> str:
         return "❌ Sorry, I couldn't fetch the market data right now. Please try again."
     
     return "❌ Could not process your stock query."
+=======
+# Query detection for FMP API features
+def detect_fmp_query(message: str) -> dict:
+    """Detect FMP API queries (M&A feed, company search, stock quotes, profiles)."""
+    message_lower = message.lower()
+    
+    # M&A related keywords
+    ma_keywords = [
+        'merger', 'mergers', 'acquisition', 'acquisitions', 'm&a', 'ma', 
+        'takeover', 'buyout', 'merge', 'acquired', 'deal', 'deals'
+    ]
+    
+    # Check for M&A queries
+    if any(keyword in message_lower for keyword in ma_keywords):
+        return {'type': 'ma_feed'}
+    
+    # Company search keywords
+    search_keywords = [
+        'search', 'find', 'look up', 'lookup', 'company', 'companies'
+    ]
+    
+    # Check for company search patterns
+    if any(keyword in message_lower for keyword in search_keywords):
+        search_patterns = [
+            r'search(?:\s+for)?\s+([A-Za-z0-9\s&.,-]+)',
+            r'find(?:\s+company)?\s+([A-Za-z0-9\s&.,-]+)',
+            r'look\s*up\s+([A-Za-z0-9\s&.,-]+)',
+            r'company\s+([A-Za-z0-9\s&.,-]+)',
+        ]
+        
+        for pattern in search_patterns:
+            match = re.search(pattern, message_lower)
+            if match:
+                query = match.group(1).strip()
+                if len(query) >= 1:
+                    return {'type': 'company_search', 'query': query}
+    
+    # Stock quote patterns - look for specific symbols or price requests
+    quote_patterns = [
+        r'\$([A-Z]{2,5})\b',  # $AAPL
+        r'\b([A-Z]{2,5})\s+(?:price|quote|stock)\b',  # AAPL price
+        r'(?:price|quote)\s+(?:of\s+)?([A-Z]{2,5})\b',  # price of AAPL
+        r'what\s+is\s+([A-Z]{2,5})\s+(?:price|stock|quote)',  # what is AAPL price
+    ]
+    
+    for pattern in quote_patterns:
+        match = re.search(pattern, message)
+        if match:
+            symbol = match.group(1).upper()
+            if len(symbol) >= 2 and len(symbol) <= 5:
+                return {'type': 'stock_quote', 'symbol': symbol}
+    
+    # Company profile patterns - look for "about" or "info" requests
+    profile_patterns = [
+        r'(?:about|info|profile|tell\s+me\s+about)\s+([A-Z]{2,5})\b',
+        r'([A-Z]{2,5})\s+(?:info|profile|company|about)',
+    ]
+    
+    for pattern in profile_patterns:
+        match = re.search(pattern, message)
+        if match:
+            symbol = match.group(1).upper()
+            if len(symbol) >= 2 and len(symbol) <= 5:
+                return {'type': 'company_profile', 'symbol': symbol}
+    
+    # General stock-related queries (for known company names)
+    stock_company_patterns = {
+        r'\bapple\s+(?:stock|price|quote)': 'AAPL',
+        r'\bmicrosoft\s+(?:stock|price|quote)': 'MSFT', 
+        r'\bgoogle\s+(?:stock|price|quote)': 'GOOGL',
+        r'\bamazon\s+(?:stock|price|quote)': 'AMZN',
+        r'\btesla\s+(?:stock|price|quote)': 'TSLA',
+        r'\bmeta\s+(?:stock|price|quote)': 'META',
+        r'\bnvidia\s+(?:stock|price|quote)': 'NVDA',
+    }
+    
+    for pattern, symbol in stock_company_patterns.items():
+        if re.search(pattern, message_lower):
+            return {'type': 'stock_quote', 'symbol': symbol}
+    
+    return {'type': 'none'}
+
+
+async def get_fmp_response(query_result: dict) -> str:
+    """Handle FMP API queries."""
+    query_type = query_result.get('type', 'none')
+    
+    if query_type == 'ma_feed':
+        logger.info("🤝 Fetching M&A RSS feed...")
+        return await get_ma_feed_response()
+    
+    elif query_type == 'company_search':
+        search_query = query_result.get('query', '')
+        logger.info(f"🔍 Searching companies for: {search_query}")
+        return await get_company_search_response(search_query)
+    
+    elif query_type == 'stock_quote':
+        symbol = query_result.get('symbol', '')
+        logger.info(f"📈 Getting stock quote for: {symbol}")
+        return await get_stock_quote_response(symbol)
+    
+    elif query_type == 'company_profile':
+        symbol = query_result.get('symbol', '')
+        logger.info(f"🏢 Getting company profile for: {symbol}")
+        return await get_company_profile_response(symbol)
+    
+    return "❌ Query type not recognized."
+>>>>>>> 1e6e3ce (Update)
 
 # User query logging
 def log_user_query(user_name: str, user_id: int, message: str, message_type: str = "question"):
@@ -363,10 +492,17 @@ I'm your AI Finance assistant. I can help you with:
 💰 Real-time Stock Prices & Market Data
 
 **Examples:**
+<<<<<<< HEAD
 • "What is Apple stock price?" 
 • "Show me market summary"
 • "Explain portfolio diversification"
 • "TSLA quote"
+=======
+• "Show me latest mergers and acquisitions"
+• "Search for Apple company"
+• "Explain portfolio diversification"
+• "What are options trading strategies?"
+>>>>>>> 1e6e3ce (Update)
 
 Ask me any finance question to get started!"""
         
@@ -395,6 +531,7 @@ async def question_handler(update, context):
         # Show typing
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
         
+<<<<<<< HEAD
         # Check if this is a stock query first
         stock_query = detect_stock_query(question)
         
@@ -406,6 +543,19 @@ async def question_handler(update, context):
             # Send stock data response
             await update.message.reply_text(answer, parse_mode='Markdown')
             logger.info(f"✅ Sent stock data to {user}")
+=======
+        # Check if this is an FMP API query first
+        fmp_query = detect_fmp_query(question)
+        
+        if fmp_query['type'] != 'none':
+            # Handle FMP API request (M&A, company search, or stock maintenance)
+            logger.info(f"📊 FMP query detected: {fmp_query['type']}")
+            answer = await get_fmp_response(fmp_query)
+            
+            # Send FMP response
+            await update.message.reply_text(answer, parse_mode='Markdown')
+            logger.info(f"✅ Sent FMP response to {user}")
+>>>>>>> 1e6e3ce (Update)
             
         else:
             # Handle regular finance questions with RAG
